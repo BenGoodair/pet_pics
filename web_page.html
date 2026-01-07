@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puppy Pics - Professional Dog Photography</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2d3748;
+            --secondary: #4a5568;
+            --accent: #f59e0b;
+            --light: #f7fafc;
+            --dark: #1a202c;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--primary);
+            overflow-x: hidden;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: -1px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .sidebar {
+            position: fixed;
+            right: -350px;
+            top: 0;
+            width: 350px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.2);
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1001;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            right: 0;
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+            transition: all 0.3s;
+            width: 60px;
+            height: 60px;
+            font-size: 1.2rem;
+        }
+
+        .sidebar-toggle:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .search-box {
+            margin-top: 2rem;
+        }
+
+        .search-box h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .search-box button {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .search-box button:hover {
+            background: #d97706;
+            transform: translateY(-2px);
+        }
+
+        .search-results {
+            margin-top: 1.5rem;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero {
+            height: 80vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><path d="M50 10 L90 90 L10 90 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            from { transform: translateY(0); }
+            to { transform: translateY(-100px); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            padding: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: white;
+            color: var(--primary);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 700;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            font-size: 1.1rem;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .section {
+            padding: 5rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            color: var(--primary);
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .photo-card {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #e0e7ff 0%, #fce7f3 100%);
+        }
+
+        .photo-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .photo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            color: white;
+            padding: 1rem;
+        }
+
+        .photo-card:hover .photo-overlay {
+            opacity: 1;
+        }
+
+        .buy-button {
+            margin-top: 1rem;
+            padding: 0.7rem 1.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .buy-button:hover {
+            background: #d97706;
+            transform: scale(1.05);
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-image {
+            width: 100%;
+            height: 500px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.2);
+        }
+
+        .about-text h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .about-text p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            color: var(--secondary);
+            line-height: 1.8;
+        }
+
+        .services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .service-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+
+        .service-card h4 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-info h4 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            color: var(--accent);
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 5%;
+            text-align: center;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--secondary);
+        }
+
+        .modal-content h3 {
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .price-options {
+            margin: 1.5rem 0;
+        }
+
+        .price-option {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .price-option:hover {
+            border-color: var(--accent);
+            background: #fffbeb;
+        }
+
+        .price-option.selected {
+            border-color: var(--accent);
+            background: #fffbeb;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { font-size: 1.2rem; }
+            .about-content { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+            .sidebar { width: 100%; right: -100%; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">🐾 Puppy Pics</div>
+            <ul class="nav-links">
+                <li><a onclick="showPage('home')">Home</a></li>
+                <li><a onclick="showPage('portfolio')">Portfolio</a></li>
+                <li><a onclick="showPage('about')">About</a></li>
+                <li><a onclick="showPage('shop')">Shop</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <button class="sidebar-toggle" onclick="toggleSidebar()">🔍</button>
+
+    <aside class="sidebar" id="sidebar">
+        <h2>Find Your Photos</h2>
+        <div class="search-box">
+            <h3>Enter Your Token</h3>
+            <input type="text" id="tokenInput" placeholder="e.g., LUNA2024" />
+            <button onclick="searchToken()">Search Photos</button>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div id="home" class="page active">
+            <section class="hero">
+                <div class="hero-content">
+                    <h1>Puppy Pics</h1>
+                    <p>Capturing the joy, personality, and unconditional love of your furry best friend</p>
+                    <button class="cta-button" onclick="showPage('portfolio')">View Gallery</button>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>Why Choose Puppy Pics?</h2>
+                <div class="services">
+                    <div class="service-card">
+                        <h4>📸 Professional Quality</h4>
+                        <p>State-of-the-art equipment and years of experience capturing dogs in their best light</p>
+                    </div>
+                    <div class="service-card">
+                        <h4>🐕 Dog-Friendly Approach</h4>
+                        <p>We work at your pup's pace, ensuring they're comfortable and having fun</p>
+                    </div>
+                    <div class="service-card">
+                        <h4>⚡ Quick Turnaround</h4>
+                        <p>Get your photos within 48 hours, fully edited and ready to treasure forever</p>
+                    </div>
+                    <div class="service-card">
+                        <h4>💝 Variety of Products</h4>
+                        <p>From digital downloads to premium prints and custom photo books</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="portfolio" class="page">
+            <section class="section">
+                <h2>Portfolio Highlights</h2>
+                <div class="gallery" id="portfolioGallery"></div>
+            </section>
+        </div>
+
+        <div id="about" class="page">
+            <section class="section">
+                <h2>About Puppy Pics</h2>
+                <div class="about-content">
+                    <div class="about-image"></div>
+                    <div class="about-text">
+                        <h3>Our Story</h3>
+                        <p>Welcome to Puppy Pics! We're passionate dog lovers who believe every pup deserves to have their moment in the spotlight. Our journey began with our own rescue dog, Max, whose goofy personality and soulful eyes inspired us to capture the unique spirit of every dog we meet.</p>
+                        
+                        <h3>Our Philosophy</h3>
+                        <p>We understand that dogs aren't just pets—they're family. That's why we take the time to get to know each dog's personality, creating a relaxed environment where they can be themselves. Whether it's capturing a playful romp in the park or a quiet, tender moment, we're dedicated to creating images that you'll treasure for a lifetime.</p>
+                        
+                        <h3>What We Offer</h3>
+                        <p>From action shots at the beach to elegant studio portraits, we specialize in capturing dogs of all breeds, sizes, and personalities. Each photo shoot is tailored to your dog's comfort level and your vision, ensuring authentic, beautiful results every time.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="shop" class="page">
+            <section class="section">
+                <h2>Shop Our Products</h2>
+                <div class="products">
+                    <div class="product-card">
+                        <div class="product-image"></div>
+                        <div class="product-info">
+                            <h4>Digital Download</h4>
+                            <p>High-resolution digital file perfect for printing and sharing</p>
+                            <div class="product-price">£15.99</div>
+                            <button class="cta-button" onclick="buyProduct('Digital Download', 15.99)">Purchase</button>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image"></div>
+                        <div class="product-info">
+                            <h4>Premium Print 8x10</h4>
+                            <p>Professional quality print on premium paper</p>
+                            <div class="product-price">£24.99</div>
+                            <button class="cta-button" onclick="buyProduct('Premium Print 8x10', 24.99)">Purchase</button>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image"></div>
+                        <div class="product-info">
+                            <h4>Canvas Print 16x20</h4>
+                            <p>Gallery-wrapped canvas ready to hang</p>
+                            <div class="product-price">£49.99</div>
+                            <button class="cta-button" onclick="buyProduct('Canvas Print 16x20', 49.99)">Purchase</button>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image"></div>
+                        <div class="product-info">
+                            <h4>Photo Book</h4>
+                            <p>Hardcover book with 20 pages of your favorite shots</p>
+                            <div class="product-price">£79.99</div>
+                            <button class="cta-button" onclick="buyProduct('Photo Book', 79.99)">Purchase</button>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image"></div>
+                        <div class="product-info">
+                            <h4>Complete Session Package</h4>
+                            <p>Full photo session with 20 edited digital images</p>
+                            <div class="product-price">£199.99</div>
+                            <button class="cta-button" onclick="buyProduct('Complete Session Package', 199.99)">Purchase</button>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image"></div>
+                        <div class="product-info">
+                            <h4>Custom Bundle</h4>
+                            <p>Create your own custom package - contact us for details</p>
+                            <div class="product-price">From £99.99</div>
+                            <button class="cta-button" onclick="buyProduct('Custom Bundle', 99.99)">Contact Us</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Puppy Pics. All rights reserved. | Capturing paws-itive memories, one photo at a time! 🐾</p>
+        <p>Contact: hello@puppypics.com | Phone: +44 123 456 7890</p>
+    </footer>
+
+    <div class="modal" id="purchaseModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <h3>Purchase Photo</h3>
+            <div id="modalContent"></div>
+            <div class="price-options">
+                <div class="price-option" onclick="selectOption(this, 'digital', 15.99)">
+                    <strong>Digital Download</strong> - £15.99
+                </div>
+                <div class="price-option" onclick="selectOption(this, 'print', 24.99)">
+                    <strong>8x10 Print</strong> - £24.99
+                </div>
+                <div class="price-option" onclick="selectOption(this, 'canvas', 49.99)">
+                    <strong>16x20 Canvas</strong> - £49.99
+                </div>
+            </div>
+            <button class="cta-button" style="width: 100%;" onclick="proceedToPayPal()">Proceed to PayPal</button>
+        </div>
+    </div>
+
+    <script>
+        const photos = {
+            'LUNA2024': [
+                { id: 1, name: 'Luna Playing in Park', token: 'LUNA2024' },
+                { id: 2, name: 'Luna Portrait', token: 'LUNA2024' },
+                { id: 3, name: 'Luna with Ball', token: 'LUNA2024' }
+            ],
+            'MAX2024': [
+                { id: 4, name: 'Max at Beach', token: 'MAX2024' },
+                { id: 5, name: 'Max Close-up', token: 'MAX2024' }
+            ],
+            'DEMO2024': [
+                { id: 6, name: 'Beautiful Golden Retriever', token: 'DEMO2024' },
+                { id: 7, name: 'Playful Pup Action Shot', token: 'DEMO2024' },
+                { id: 8, name: 'Adorable Puppy Portrait', token: 'DEMO2024' }
+            ]
+        };
+
+        const portfolioPhotos = [
+            { id: 101, name: 'Golden Hour Beauty', description: 'Sunset portrait session' },
+            { id: 102, name: 'Action Shot', description: 'Beach playtime' },
+            { id: 103, name: 'Studio Portrait', description: 'Classic elegance' },
+            { id: 104, name: 'Candid Moment', description: 'Natural expression' },
+            { id: 105, name: 'Outdoor Adventure', description: 'Forest exploration' },
+            { id: 106, name: 'Playful Pup', description: 'Park fun' }
+        ];
+
+        let selectedPrice = 0;
+        let selectedOption = '';
+        let currentPhoto = null;
+
+        function showPage(pageId) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            if (pageId === 'portfolio') {
+                loadPortfolio();
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function searchToken() {
+            const token = document.getElementById('tokenInput').value.toUpperCase();
+            const results = document.getElementById('searchResults');
+            
+            if (photos[token]) {
+                let html = '<h4 style="margin-top: 1.5rem;">Your Photos:</h4>';
+                photos[token].forEach(photo => {
+                    html += `
+                        <div class="photo-card" style="margin-bottom: 1rem;" onclick="openPurchaseModal(${photo.id}, '${photo.name}')">
+                            <div style="padding: 1rem; text-align: center;">
+                                <p style="font-weight: 600;">${photo.name}</p>
+                                <button class="buy-button" style="margin-top: 0.5rem;">View & Purchase</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                results.innerHTML = html;
+            } else {
+                results.innerHTML = '<p style="margin-top: 1rem; color: #e53e3e;">Token not found. Please check your token and try again.</p>';
+            }
+        }
+
+        function loadPortfolio() {
+            const gallery = document.getElementById('portfolioGallery');
+            gallery.innerHTML = portfolioPhotos.map(photo => `
+                <div class="photo-card" onclick="openPurchaseModal(${photo.id}, '${photo.name}')">
+                    <div class="photo-overlay">
+                        <h4>${photo.name}</h4>
+                        <p>${photo.description}</p>
+                        <button class="buy-button">Purchase This Photo</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openPurchaseModal(photoId, photoName) {
+            currentPhoto = { id: photoId, name: photoName };
+            document.getElementById('modalContent').innerHTML = `<p style="margin-bottom: 1rem;">Select a format for: <strong>${photoName}</strong></p>`;
+            document.getElementById('purchaseModal').classList.add('active');
+            selectedPrice = 0;
+            selectedOption = '';
+            document.querySelectorAll('.price-option').forEach(opt => opt.classList.remove('selected'));
+        }
+
+        function closeModal() {
+            document.getElementById('purchaseModal').classList.remove('active');
+        }
+
+        function selectOption(el, option, price) {
+            document.querySelectorAll('.price-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedOption = option;
+            selectedPrice = price;
+        }
+
+        function proceedToPayPal() {
+            if (!selectedPrice) {
+                alert('Please select a purchase option');
+                return;
+            }
+            
+            const paypalUrl = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=YOUR_PAYPAL_EMAIL&item_name=${encodeURIComponent(currentPhoto.name + ' - ' + selectedOption)}&amount=${selectedPrice}&currency_code=GBP`;
+            
+            window.open(paypalUrl, '_blank');
+            closeModal();
+        }
+
+        function buyProduct(productName, price) {
+            const paypalUrl = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=YOUR_PAYPAL_EMAIL&item_name=${encodeURIComponent(productName)}&amount=${price}&currency_code=GBP`;
+            
+            window.open(paypalUrl, '_blank');
+        }
+
+        loadPortfolio();
+    </script>
+</body>
+</html>
