@@ -667,31 +667,82 @@
     </div>
 
     <script>
-        const photos = {
-            'LUNA2024': [
-                { id: 1, name: 'Luna Playing in Park', token: 'LUNA2024' },
-                { id: 2, name: 'Luna Portrait', token: 'LUNA2024' },
-                { id: 3, name: 'Luna with Ball', token: 'LUNA2024' }
-            ],
-            'MAX2024': [
-                { id: 4, name: 'Max at Beach', token: 'MAX2024' },
-                { id: 5, name: 'Max Close-up', token: 'MAX2024' }
-            ],
-            'DEMO2024': [
-                { id: 6, name: 'Beautiful Golden Retriever', token: 'DEMO2024' },
-                { id: 7, name: 'Playful Pup Action Shot', token: 'DEMO2024' },
-                { id: 8, name: 'Adorable Puppy Portrait', token: 'DEMO2024' }
-            ]
-        };
+        let photos = {};
+        let portfolioPhotos = [];
+        let allImages = [];
 
-        const portfolioPhotos = [
-            { id: 101, name: 'Golden Hour Beauty', description: 'Sunset portrait session' },
-            { id: 102, name: 'Action Shot', description: 'Beach playtime' },
-            { id: 103, name: 'Studio Portrait', description: 'Classic elegance' },
-            { id: 104, name: 'Candid Moment', description: 'Natural expression' },
-            { id: 105, name: 'Outdoor Adventure', description: 'Forest exploration' },
-            { id: 106, name: 'Playful Pup', description: 'Park fun' }
-        ];
+        // Load CSV and images on page load
+        async function loadData() {
+            try {
+                // Load tokens CSV
+                const csvResponse = await fetch('tokens/tokens.csv');
+                const csvText = await csvResponse.text();
+                
+                // Parse CSV
+                const lines = csvText.split('\n').filter(line => line.trim());
+                const headers = lines[0].split(',').map(h => h.trim());
+                
+                // Process each image
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',').map(v => v.trim());
+                    const token = values[0];
+                    const filename = `images/dog${i}.jpg`; // Or use a filename column if you have one
+                    
+                    const photo = {
+                        id: i,
+                        name: `Photo ${i}`,
+                        token: token,
+                        filename: filename
+                    };
+                    
+                    allImages.push(photo);
+                    
+                    // Group by token
+                    if (!photos[token]) {
+                        photos[token] = [];
+                    }
+                    photos[token].push(photo);
+                    
+                    // Add to portfolio (show all photos)
+                    portfolioPhotos.push({
+                        id: i,
+                        name: `Photo ${i}`,
+                        description: `Token: ${token}`,
+                        filename: filename
+                    });
+                }
+                
+                loadPortfolio();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                // Fallback: try to load images directly
+                await loadImagesDirectly();
+            }
+        }
+
+        // Fallback: Load images from folder without CSV
+        async function loadImagesDirectly() {
+            // Try to load images numbered 1-50
+            for (let i = 1; i <= 50; i++) {
+                const filename = `images/dog${i}.jpg`;
+                
+                // Check if image exists
+                const img = new Image();
+                img.onload = function() {
+                    const photo = {
+                        id: i,
+                        name: `Photo ${i}`,
+                        description: 'Beautiful dog photo',
+                        filename: filename
+                    };
+                    portfolioPhotos.push(photo);
+                    if (portfolioPhotos.length <= 6) {
+                        loadPortfolio();
+                    }
+                };
+                img.src = filename;
+            }
+        }
 
         let selectedPrice = 0;
         let selectedOption = '';
@@ -719,9 +770,9 @@
                 let html = '<h4 style="margin-top: 1.5rem;">Your Photos:</h4>';
                 photos[token].forEach(photo => {
                     html += `
-                        <div class="photo-card" style="margin-bottom: 1rem;" onclick="openPurchaseModal(${photo.id}, '${photo.name}')">
-                            <div style="padding: 1rem; text-align: center;">
-                                <p style="font-weight: 600;">${photo.name}</p>
+                        <div class="photo-card" style="margin-bottom: 1rem; background-image: url('${photo.filename}'); background-size: cover; background-position: center; height: 200px;" onclick="openPurchaseModal(${photo.id}, '${photo.name}')">
+                            <div style="padding: 1rem; text-align: center; background: rgba(255,255,255,0.9); position: absolute; bottom: 0; left: 0; right: 0;">
+                                <p style="font-weight: 600; margin: 0;">${photo.name}</p>
                                 <button class="buy-button" style="margin-top: 0.5rem;">View & Purchase</button>
                             </div>
                         </div>
@@ -736,7 +787,7 @@
         function loadPortfolio() {
             const gallery = document.getElementById('portfolioGallery');
             gallery.innerHTML = portfolioPhotos.map(photo => `
-                <div class="photo-card" onclick="openPurchaseModal(${photo.id}, '${photo.name}')">
+                <div class="photo-card" onclick="openPurchaseModal(${photo.id}, '${photo.name}')" style="background-image: url('${photo.filename}'); background-size: cover; background-position: center;">
                     <div class="photo-overlay">
                         <h4>${photo.name}</h4>
                         <p>${photo.description}</p>
@@ -748,7 +799,12 @@
 
         function openPurchaseModal(photoId, photoName) {
             currentPhoto = { id: photoId, name: photoName };
-            document.getElementById('modalContent').innerHTML = `<p style="margin-bottom: 1rem;">Select a format for: <strong>${photoName}</strong></p>`;
+            const photo = allImages.find(p => p.id === photoId) || portfolioPhotos.find(p => p.id === photoId);
+            const imgHtml = photo && photo.filename ? `<img src="${photo.filename}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem;">` : '';
+            document.getElementById('modalContent').innerHTML = `
+                ${imgHtml}
+                <p style="margin-bottom: 1rem;">Select a format for: <strong>${photoName}</strong></p>
+            `;
             document.getElementById('purchaseModal').classList.add('active');
             selectedPrice = 0;
             selectedOption = '';
@@ -784,7 +840,8 @@
             window.open(paypalUrl, '_blank');
         }
 
-        loadPortfolio();
+        // Load data when page loads
+        window.addEventListener('DOMContentLoaded', loadData);
     </script>
 </body>
 </html>
