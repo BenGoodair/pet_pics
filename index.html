@@ -103,9 +103,11 @@
             z-index: 999;
             box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
             transition: all 0.3s;
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             font-size: 1.2rem;
+            line-height: 1.2;
+
         }
 
         .sidebar-toggle:hover {
@@ -507,8 +509,8 @@
         </nav>
     </header>
 
-    <button class="sidebar-toggle" onclick="toggleSidebar()">🔍</button>
-
+	<button class="sidebar-toggle" onclick="toggleSidebar()">🔍<br><span style="font-size: 0.6rem;">Search for<br>your pictures</span></button>
+	
     <aside class="sidebar" id="sidebar">
         <h2>Find Your Photos</h2>
         <div class="search-box">
@@ -759,8 +761,17 @@
         }
 
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
+    		document.getElementById('sidebar').classList.toggle('open');
+		}
+
+		// Close sidebar when clicking outside
+		document.addEventListener('click', function(e) {
+    		const sidebar = document.getElementById('sidebar');
+    		const toggle = document.querySelector('.sidebar-toggle');
+    		if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        		sidebar.classList.remove('open');
+    		}
+		});
 
         function searchToken() {
             const token = document.getElementById('tokenInput').value.toUpperCase();
